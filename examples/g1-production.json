@@ -1,0 +1,390 @@
+{
+  "name": "G1 event planner lanes audits merge",
+  "wip": 3,
+  "nodes": [
+    {
+      "id": "planner_wake",
+      "kind": "wake",
+      "lane": "planner",
+      "on": [
+        "start",
+        "queue_low",
+        "milestone",
+        "ask_answered"
+      ],
+      "determinism": "deterministic",
+      "reasoning": "low"
+    },
+    {
+      "id": "planner",
+      "kind": "agent",
+      "role": "planner",
+      "lane": "planner",
+      "goal": "Generate current and tentative tasks in a plan file",
+      "artifacts": [
+        "plan.json"
+      ],
+      "tiers": [
+        {
+          "provider": "claude",
+          "model": "sonnet"
+        }
+      ],
+      "sandbox": [
+        "@package/adapters/sandbox.sh",
+        "--ro",
+        ".",
+        "--net",
+        "1"
+      ],
+      "max_attempts": 1,
+      "determinism": "judgment",
+      "reasoning": "high",
+      "work_pattern": "investigate-first"
+    },
+    {
+      "id": "workers",
+      "kind": "fanout",
+      "lane": "planner",
+      "items": [
+        "plugins",
+        "tooling"
+      ],
+      "template": {
+        "kind": "agent",
+        "role": "worker",
+        "lane": "worker-${item}",
+        "goal": "Implement card ${item}; keep all changes in scope",
+        "paths": [
+          "src/${item}/**"
+        ],
+        "tiers": [
+          {
+            "provider": "claude",
+            "model": "haiku"
+          },
+          {
+            "provider": "claude",
+            "model": "sonnet"
+          }
+        ],
+        "sandbox": [
+          "@package/adapters/sandbox.sh",
+          "--ro",
+          ".",
+          "--net",
+          "1"
+        ],
+        "max_attempts": 4,
+        "determinism": "judgment",
+        "reasoning": "low",
+        "work_pattern": "lean-build"
+      },
+      "determinism": "deterministic",
+      "reasoning": "low"
+    },
+    {
+      "id": "join_workers",
+      "kind": "join",
+      "lane": "review",
+      "determinism": "deterministic",
+      "reasoning": "low"
+    },
+    {
+      "id": "prepare",
+      "kind": "code",
+      "lane": "review",
+      "cmd": [
+        "bash",
+        "tools/autoshift_prepare.sh"
+      ],
+      "artifacts": [
+        "prepare.ok"
+      ],
+      "determinism": "deterministic",
+      "reasoning": "low"
+    },
+    {
+      "id": "gate",
+      "kind": "gate",
+      "lane": "gate",
+      "paths": [
+        ".gate-exclusive/**"
+      ],
+      "cmd": [
+        "bash",
+        "tools/autoshift_gate.sh"
+      ],
+      "artifacts": [
+        "gate.ok"
+      ],
+      "timeout": 2400,
+      "determinism": "deterministic",
+      "reasoning": "low",
+      "trusted_gate": {
+        "root": "@package",
+        "entry": "examples/locked-gates/unwired-gate.sh"
+      }
+    },
+    {
+      "id": "merge_check",
+      "kind": "gate",
+      "lane": "main",
+      "paths": [
+        "**"
+      ],
+      "cmd": [
+        "python3",
+        "-c",
+        "import sys;sys.stderr.write('UNWIRED: no verified read-only merge-check adapter\\n');sys.exit(78)"
+      ],
+      "artifacts": [
+        "merge-check.ok"
+      ],
+      "determinism": "deterministic",
+      "reasoning": "low",
+      "trusted_gate": {
+        "root": "@package",
+        "entry": "examples/locked-gates/unwired-gate.sh"
+      }
+    },
+    {
+      "id": "merge",
+      "kind": "ask",
+      "lane": "main",
+      "goal": "Owner approval needed for protected merge",
+      "determinism": "deterministic",
+      "reasoning": "low"
+    }
+  ],
+  "edges": [
+    {
+      "from": "planner_wake",
+      "to": "planner"
+    },
+    {
+      "from": "planner",
+      "to": "workers"
+    },
+    {
+      "from": "workers",
+      "to": "join_workers"
+    },
+    {
+      "from": "join_workers",
+      "to": "prepare"
+    },
+    {
+      "from": "prepare",
+      "to": "gate"
+    },
+    {
+      "from": "gate",
+      "to": "merge_check"
+    },
+    {
+      "from": "merge_check",
+      "to": "merge"
+    }
+  ],
+  "audit_policy": [
+    {
+      "id": "plugin",
+      "patterns": [
+        "src/plugins/**"
+      ],
+      "auditors": [
+        {
+          "goal": "Independent plugin audit 1",
+          "tiers": [
+            {
+              "provider": "codex",
+              "model": "gpt-6.1-sol"
+            }
+          ],
+          "sandbox": [
+            "@package/adapters/sandbox.sh",
+            "--ro",
+            ".",
+            "--net",
+            "1"
+          ],
+          "determinism": "judgment",
+          "reasoning": "high",
+          "work_pattern": "verify-and-stop"
+        },
+        {
+          "goal": "Independent plugin audit 2",
+          "tiers": [
+            {
+              "provider": "claude",
+              "model": "sonnet"
+            }
+          ],
+          "sandbox": [
+            "@package/adapters/sandbox.sh",
+            "--ro",
+            ".",
+            "--net",
+            "1"
+          ],
+          "determinism": "judgment",
+          "reasoning": "high",
+          "work_pattern": "verify-and-stop"
+        }
+      ],
+      "after": "gate"
+    },
+    {
+      "id": "wide",
+      "patterns": [
+        "src/core/**",
+        "include/**"
+      ],
+      "auditors": [
+        {
+          "goal": "Independent wide change audit 1",
+          "tiers": [
+            {
+              "provider": "codex",
+              "model": "gpt-6.1-sol"
+            }
+          ],
+          "sandbox": [
+            "@package/adapters/sandbox.sh",
+            "--ro",
+            ".",
+            "--net",
+            "1"
+          ],
+          "determinism": "judgment",
+          "reasoning": "high",
+          "work_pattern": "verify-and-stop"
+        },
+        {
+          "goal": "Independent wide change audit 2",
+          "tiers": [
+            {
+              "provider": "claude",
+              "model": "sonnet"
+            }
+          ],
+          "sandbox": [
+            "@package/adapters/sandbox.sh",
+            "--ro",
+            ".",
+            "--net",
+            "1"
+          ],
+          "determinism": "judgment",
+          "reasoning": "high",
+          "work_pattern": "verify-and-stop"
+        }
+      ]
+    }
+  ],
+  "production": {
+    "planner": {
+      "goal": "Produce plan.json with only the currently needed tasks as {\"tasks\":[{\"id\",\"goal\",\"lane\",\"paths\",\"class\",\"acceptance\"}]}. You cannot choose gate, tests, shell commands, or trusted roots. Avoid duplicate tasks.",
+      "tiers": [
+        {
+          "provider": "claude",
+          "model": "sonnet"
+        }
+      ],
+      "timeout": 600
+    },
+    "task_template": {
+      "worker": {
+        "tiers": [
+          {
+            "provider": "claude",
+            "model": "haiku"
+          },
+          {
+            "provider": "claude",
+            "model": "sonnet"
+          }
+        ],
+        "timeout": 1200
+      },
+      "trusted_gate": {
+        "root": "@package",
+        "entry": "examples/locked-gates/g1-project-gate.sh",
+        "pin": [
+          "examples/locked-gates/acceptance"
+        ],
+        "code_paths": [
+          "src"
+        ],
+        "args": []
+      },
+      "acceptance": {
+        "feature": "examples/locked-gates/acceptance/feature.sh"
+      },
+      "audits": {
+        "plugin": [
+          {
+            "tiers": [
+              {
+                "provider": "claude",
+                "model": "sonnet"
+              }
+            ]
+          },
+          {
+            "tiers": [
+              {
+                "provider": "claude",
+                "model": "sonnet"
+              }
+            ]
+          }
+        ],
+        "wide": [
+          {
+            "tiers": [
+              {
+                "provider": "claude",
+                "model": "sonnet"
+              }
+            ]
+          },
+          {
+            "tiers": [
+              {
+                "provider": "claude",
+                "model": "sonnet"
+              }
+            ]
+          }
+        ]
+      },
+      "gate_timeout": 1200,
+      "allowed_paths": [
+        "src/**"
+      ],
+      "protected_paths": {
+        "plugin": [
+          "src/plugins/**"
+        ],
+        "wide": [
+          "src/core/**",
+          "include/**"
+        ]
+      }
+    },
+    "queue_min": 2,
+    "poll_seconds": 1,
+    "stop": {
+      "completed": 8,
+      "max_plans": 12
+    }
+  },
+  "quota": {
+    "claude": {
+      "usage_pct": 0,
+      "limit_pct": 80
+    }
+  }
+}

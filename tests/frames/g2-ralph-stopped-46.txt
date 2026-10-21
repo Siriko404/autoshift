@@ -1,0 +1,47 @@
+AUTOSHIFT / G2 finite Ralph loop (unrolled pas
+STOPPED
+
+              ┌───────────────┐
+              │ pass1         │
+              │ agent         │
+              │ claude/haiku  │
+              │ / low         │
+              │ ○ READY       │
+              └───────┴───────┘
+                      │
+                      │
+                      │
+                      │
+                      ▼
+              ┌───────┬───────┐
+              │ gate1         │
+              │ gate / code   │
+              │ · tentative   │
+              └───────┴───────┘
+                      │
+                      │
+                      │
+                      │
+                      ▼ F
+              ┌───────┬───────┐
+              │ pass2         │
+              │ agent         │
+              │ claude/haiku  │
+              │ / low         │
+              │ · tentative   │
+              └───────┴───────┘
+                      │
+                      │
+                      │
+                      │
+                      ▼
+              ┌───────┬───────┐
+              │ gate2         │
+              │ gate / code   │
+              │ · tentative   │
+              └───────────────┘
+
+
+● RUNNING  ✓ PASS  ✕ FAIL  ? BLOCKED  ↻ RETRY
+○ READY  · WAIT  ▼ DIRECTION  F FAIL-edge  B
+BLOCKED-edge  S SKIP-edge  * mixed-edge

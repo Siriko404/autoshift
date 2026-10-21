@@ -1,0 +1,40 @@
+{
+  "name": "team: two agents in parallel, then one check",
+  "wip": 2,
+  "quota": {"claude": {"cmd": ["python3", "@package/adapters/claude_quota.py"], "weekly_limit_pct": 80, "five_hour_limit_pct": 90}},
+  "nodes": [
+    {
+      "id": "worker_a",
+      "kind": "agent",
+      "role": "worker",
+      "lane": "a",
+      "goal": "Create the file src/a/one.txt containing exactly one line: first worker done",
+      "tiers": [{"provider": "claude", "model": "haiku"}],
+      "sandbox": ["@package/adapters/sandbox.sh", "--provider", "claude", "--rw", "src/a", "--net", "1"],
+      "max_attempts": 1,
+      "timeout": 600
+    },
+    {
+      "id": "worker_b",
+      "kind": "agent",
+      "role": "worker",
+      "lane": "b",
+      "goal": "Create the file src/b/two.txt containing exactly one line: second worker done",
+      "tiers": [{"provider": "claude", "model": "haiku"}],
+      "sandbox": ["@package/adapters/sandbox.sh", "--provider", "claude", "--rw", "src/b", "--net", "1"],
+      "max_attempts": 1,
+      "timeout": 600
+    },
+    {
+      "id": "check",
+      "kind": "gate",
+      "cmd": ["false"],
+      "artifacts": [".autoshift-gate-output/team.ok"],
+      "trusted_gate": {"root": "@package", "entry": "examples/team/check.sh", "code_paths": ["src"]}
+    }
+  ],
+  "edges": [
+    {"from": "worker_a", "to": "check", "on": ["PASS"]},
+    {"from": "worker_b", "to": "check", "on": ["PASS"]}
+  ]
+}

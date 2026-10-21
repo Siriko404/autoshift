@@ -1,0 +1,42 @@
+AUTOSHIFT / G3 code-only verified pipeline
+ACTIVE
+
+                             ┌────────────────────────────────┐
+                             │ prepare                        │
+                             │ code / code                    │
+                             │ ● RUNNING                      │
+                             └────────────────┴───────────────┘
+                                              │
+                                              │
+                                              │
+                                              │
+                                              ▼
+                             ┌────────────────┬───────────────┐
+                             │ build                          │
+                             │ code / code                    │
+                             │ · tentative                    │
+                             └────────────────┴───────────────┘
+                                              │
+                                              │
+                                              │
+                                              │
+                                              ▼
+                             ┌────────────────┬───────────────┐
+                             │ test                           │
+                             │ gate / code                    │
+                             │ · tentative                    │
+                             └────────────────┴───────────────┘
+                                              │
+                                              │
+                                              │
+                                              │
+                                              ▼
+                             ┌────────────────┬───────────────┐
+                             │ package                        │
+                             │ code / code                    │
+                             │ · tentative                    │
+                             └────────────────────────────────┘
+
+
+● RUNNING  ✓ PASS  ✕ FAIL  ? BLOCKED  ↻ RETRY  ○ READY  · WAIT  ▼ DIRECTION  F FAIL-edge  B
+BLOCKED-edge  S SKIP-edge  * mixed-edge

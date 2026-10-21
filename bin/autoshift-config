@@ -1,0 +1,116 @@
+#!/usr/bin/env python3
+"""Lists and sets a steps file's run settings, so the /autoshift skill can ask you for each one.
+
+  autoshift-config show GRAPH              print every setting with its current value (JSON)
+  autoshift-config apply GRAPH OUT k=v...  write OUT = GRAPH with the answers, validated by the kernel
+Settings: weekly_stop, five_hour_stop (percent, Claude), agents_at_once, merge_on_pass, and per agent step
+<id>.tool (claude|codex|opencode|agy), <id>.model, <id>.timeout (seconds), <id>.attempts.
+<tool>.unmetered=true is your explicit choice to run that tool with no usage stop (Claude needs it when no
+usage reader is installed; the other tools never have a reader).
+"""
+import json
+import sys
+from pathlib import Path
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+from autoshift.graph import validate  # noqa: E402
+
+TOOLS = ('claude', 'codex', 'opencode', 'agy')
+CLAUDE_READER = ['python3', '@package/adapters/claude_quota.py']
+
+
+def settings(g):
+    q = g.get('quota', {}).get('claude', {})
+    out = {'weekly_stop': q.get('weekly_limit_pct', 80), 'five_hour_stop': q.get('five_hour_limit_pct', 90),
+           'agents_at_once': g.get('wip', 2), 'merge_on_pass': g.get('merge_on_pass') is True}
+    for n in g['nodes']:
+        if n['kind'] != 'agent':
+            continue
+        tier = (n.get('tiers') or [{}])[0]
+        out[n['id'] + '.tool'] = tier.get('provider', 'claude')
+        out[n['id'] + '.model'] = tier.get('model', '')
+        out[n['id'] + '.timeout'] = n.get('timeout', 300)
+        out[n['id'] + '.attempts'] = n.get('max_attempts', 1)
+    for t in TOOLS:
+        if any(v == t for k, v in out.items() if k.endswith('.tool')):
+            out[t + '.unmetered'] = g.get('quota', {}).get(t, {}).get('unmetered', False)
+    return out
+
+
+def apply(g, pairs):
+    g = json.loads(json.dumps(g))
+    nodes = {n['id']: n for n in g['nodes']}
+    unmetered_set = set()
+    for key, value in sorted(pairs.items(), key=lambda kv: kv[0].endswith('.unmetered')):
+        if key in ('weekly_stop', 'five_hour_stop'):
+            v = int(value)
+            if g.get('quota', {}).get('claude', {}).get('unmetered') is True or 'claude' in unmetered_set:
+                continue  # Claude runs without a usage stop by explicit choice; the stops do not apply
+            if not 1 <= v <= 100:
+                raise ValueError(key + ' must be 1..100')
+            q = g.setdefault('quota', {}).setdefault('claude', {'cmd': CLAUDE_READER})
+            q.pop('limit_pct', None)
+            q['weekly_limit_pct' if key == 'weekly_stop' else 'five_hour_limit_pct'] = v
+        elif key == 'agents_at_once':
+            g['wip'] = int(value)
+        elif key == 'merge_on_pass':
+            if value not in ('true', 'false'):
+                raise ValueError('merge_on_pass must be true or false')
+            g['merge_on_pass'] = value == 'true'
+        elif key.endswith('.unmetered') and key.split('.')[0] in TOOLS:
+            if value not in ('true', 'false'):
+                raise ValueError(key + ' must be true or false')
+            tool = key.split('.')[0]
+            if value == 'true':
+                g.setdefault('quota', {})[tool] = {'unmetered': True}
+            elif tool == 'claude':
+                g.setdefault('quota', {})[tool] = {'cmd': CLAUDE_READER, 'weekly_limit_pct': 80, 'five_hour_limit_pct': 90}
+            else:
+                g.setdefault('quota', {})[tool] = {'unmetered': False}
+            unmetered_set.add(tool)
+        elif '.' in key and key.rsplit('.', 1)[0] in nodes and nodes[key.rsplit('.', 1)[0]]['kind'] == 'agent':
+            node, field = key.rsplit('.', 1)
+            n = nodes[node]
+            tier = (n.setdefault('tiers', [{}]) or [{}])[0]
+            if field == 'tool':
+                if value not in TOOLS:
+                    raise ValueError('tool must be one of ' + ', '.join(TOOLS))
+                tier['provider'] = value
+                sb = n.get('sandbox', [])
+                if '--provider' in sb:
+                    sb[sb.index('--provider') + 1] = value
+            elif field == 'model':
+                tier['model'] = value
+            elif field == 'timeout':
+                n['timeout'] = int(value)
+            elif field == 'attempts':
+                n['max_attempts'] = int(value)
+            else:
+                raise ValueError('unknown setting ' + key)
+            n['tiers'] = [tier] + n['tiers'][1:]
+        else:
+            raise ValueError('unknown setting ' + key)
+    validate(g)
+    return g
+
+
+def main(argv):
+    if len(argv) >= 2 and argv[0] == 'show':
+        print(json.dumps(settings(json.loads(Path(argv[1]).read_text())), indent=1))
+        return 0
+    if len(argv) >= 3 and argv[0] == 'apply':
+        pairs = dict(a.split('=', 1) for a in argv[3:])
+        try:
+            g = apply(json.loads(Path(argv[1]).read_text()), pairs)
+        except (ValueError, KeyError) as e:
+            print('refusing: ' + str(e))
+            return 2
+        Path(argv[2]).parent.mkdir(parents=True, exist_ok=True)
+        Path(argv[2]).write_text(json.dumps(g, indent=1) + '\n')
+        print('WROTE ' + argv[2])
+        return 0
+    print(__doc__)
+    return 2
+
+
+if __name__ == '__main__':
+    raise SystemExit(main(sys.argv[1:]))

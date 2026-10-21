@@ -1,0 +1,114 @@
+AUTOSHIFT / G1 event planner lanes audits merge
+ACTIVE
+
+                             ┌────────────────────────────────┐
+                             │ planner_wake                   │
+                             │ wake / code                    │
+                             │ ✕ FAIL                         │
+                             └────────────────┴───────────────┘
+                                              │
+                                              │
+                                              │
+                                              │
+                                              ▼
+                             ┌────────────────┬───────────────┐
+                             │ planner                        │
+                             │ agent claude/sonnet / high     │
+                             │ · tentative                    │
+                             └────────────────┴───────────────┘
+                                              │
+                                              │
+                                              │
+                                              │
+                                              ▼
+                             ┌────────────────┬───────────────┐
+                             │ workers                        │
+                             │ fanout / code                  │
+                             │ · tentative                    │
+                             └────────────────┴───────────────┘
+                       ┌──────────────────────┴────────────┐
+                       │                                   │
+                       │                                   │
+                       │                                   │
+                       ▼                                   ▼
+      ┌────────────────┬───────────────┐  ┌────────────────┬───────────────┐
+      │ workers.item0                  │  │ workers.item1                  │
+      │ agent claude/haiku / low       │  │ agent claude/haiku / low       │
+      │ · tentative                    │  │ · tentative                    │
+      └────────────────┴───────────────┘  └────────────────┴───────────────┘
+                       └──────────────────────┬────────────┘
+                                              │
+                                              │
+                                              │
+                                              ▼
+                             ┌────────────────┬───────────────┐
+                             │ join_workers                   │
+                             │ join / code                    │
+                             │ · tentative                    │
+                             └────────────────┴───────────────┘
+                                              │
+                                              │
+                                              │
+                                              │
+                                              ▼
+                             ┌────────────────┬───────────────┐
+                             │ prepare                        │
+                             │ code / code                    │
+                             │ · tentative                    │
+                             └────────────────┴───────────────┘
+                                              │
+                                              │
+                                              │
+                                              │
+                                              ▼
+                             ┌────────────────┬───────────────┐
+                             │ gate                           │
+                             │ gate / code                    │
+                             │ · tentative                    │
+                             └────────────────┴───────────────┘
+                                              │
+                                              │
+                                              │
+                                              │
+                                              ▼
+                             ┌────────────────┬───────────────┐
+                             │ workers.item0.audit.plugin.1   │
+                             │ agent codex/gpt-6.1-sol / high │
+                             │ · tentative                    │
+                             └────────────────┴───────────────┘
+                                              │
+                                              │
+                                              │
+                                              │
+                                              ▼
+                             ┌────────────────┬───────────────┐
+                             │ workers.item0.audit.plugin.2   │
+                             │ agent claude/sonnet / high     │
+                             │ · tentative                    │
+                             └────────────────┴───────────────┘
+                                              │
+                                              │
+                                              │
+                                              │
+                                              ▼
+                             ┌────────────────┬───────────────┐
+                             │ merge_check                    │
+                             │ gate / code                    │
+                             │ · tentative                    │
+                             └────────────────┴───────────────┘
+                                              │
+                                              │
+                                              │
+                                              │
+                                              ▼
+                             ┌────────────────┬───────────────┐
+                             │ merge                          │
+                             │ ask / code                     │
+                             │ · tentative                    │
+                             └────────────────────────────────┘
+
+
+● RUNNING  ✓ PASS  ✕ FAIL  ? BLOCKED  ↻ RETRY  ○ READY  · WAIT  ▼ DIRECTION  F FAIL-edge  B
+BLOCKED-edge  S SKIP-edge  * mixed-edge
+
+ASK planner_wake

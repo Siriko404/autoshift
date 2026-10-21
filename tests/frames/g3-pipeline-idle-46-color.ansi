@@ -1,0 +1,43 @@
+[1;36mAUTOSHIFT / G3 code-only verified pipeline[0m
+[1;36mACTIVE[0m
+
+              [90m┌───────────────┐[0m
+              [90m│[0m [37mprepare[0m       [90m│[0m
+              [90m│[0m [37mcode / code[0m   [90m│[0m
+              [90m│[0m [37m○ READY[0m       [90m│[0m
+              [90m└───────┴───────┘[0m
+                      [90m│[0m
+                      [90m│[0m
+                      [90m│[0m
+                      [90m│[0m
+                      [90m▼[0m
+              [90m┌───────┬───────┐[0m
+              [90m│[0m [90mbuild[0m         [90m│[0m
+              [90m│[0m [90mcode / code[0m   [90m│[0m
+              [90m│[0m [90m· tentative[0m   [90m│[0m
+              [90m└───────┴───────┘[0m
+                      [90m│[0m
+                      [90m│[0m
+                      [90m│[0m
+                      [90m│[0m
+                      [90m▼[0m
+              [90m┌───────┬───────┐[0m
+              [90m│[0m [90mtest[0m          [90m│[0m
+              [90m│[0m [90mgate / code[0m   [90m│[0m
+              [90m│[0m [90m· tentative[0m   [90m│[0m
+              [90m└───────┴───────┘[0m
+                      [90m│[0m
+                      [90m│[0m
+                      [90m│[0m
+                      [90m│[0m
+                      [90m▼[0m
+              [90m┌───────┬───────┐[0m
+              [90m│[0m [90mpackage[0m       [90m│[0m
+              [90m│[0m [90mcode / code[0m   [90m│[0m
+              [90m│[0m [90m· tentative[0m   [90m│[0m
+              [90m└───────────────┘[0m
+
+
+[90m● RUNNING  ✓ PASS  ✕ FAIL  ? BLOCKED  ↻ RETRY[0m
+[90m○ READY  · WAIT  ▼ DIRECTION  F FAIL-edge  B[0m
+[90mBLOCKED-edge  S SKIP-edge  * mixed-edge[0m

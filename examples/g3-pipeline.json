@@ -1,0 +1,89 @@
+{
+  "name": "G3 code-only verified pipeline",
+  "wip": 2,
+  "nodes": [
+    {
+      "id": "prepare",
+      "kind": "code",
+      "lane": "build",
+      "cmd": [
+        "python3",
+        "-c",
+        "from pathlib import Path;Path('a.txt').write_text('source')"
+      ],
+      "artifacts": [
+        "a.txt"
+      ],
+      "determinism": "deterministic",
+      "reasoning": "low"
+    },
+    {
+      "id": "build",
+      "kind": "code",
+      "lane": "build",
+      "cmd": [
+        "python3",
+        "-c",
+        "from pathlib import Path;Path('b.txt').write_text(Path('a.txt').read_text()+' built')"
+      ],
+      "artifacts": [
+        "b.txt"
+      ],
+      "determinism": "deterministic",
+      "reasoning": "low"
+    },
+    {
+      "id": "test",
+      "kind": "gate",
+      "lane": "gate",
+      "cmd": [
+        "python3",
+        "-c",
+        "from pathlib import Path;assert Path('b.txt').read_text()=='source built';Path('ok.txt').write_text('PASS')"
+      ],
+      "artifacts": [
+        "ok.txt"
+      ],
+      "determinism": "deterministic",
+      "reasoning": "low"
+    },
+    {
+      "id": "package",
+      "kind": "code",
+      "lane": "build",
+      "cmd": [
+        "python3",
+        "-c",
+        "from pathlib import Path;Path('package.txt').write_text(Path('b.txt').read_text())"
+      ],
+      "artifacts": [
+        "package.txt"
+      ],
+      "determinism": "deterministic",
+      "reasoning": "low"
+    }
+  ],
+  "edges": [
+    {
+      "from": "prepare",
+      "to": "build",
+      "on": [
+        "PASS"
+      ]
+    },
+    {
+      "from": "build",
+      "to": "test",
+      "on": [
+        "PASS"
+      ]
+    },
+    {
+      "from": "test",
+      "to": "package",
+      "on": [
+        "PASS"
+      ]
+    }
+  ]
+}

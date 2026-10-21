@@ -1,0 +1,26 @@
+{
+  "name": "hello: one agent, one check",
+  "wip": 1,
+  "merge_on_pass": false,
+  "quota": {"claude": {"cmd": ["python3", "@package/adapters/claude_quota.py"], "weekly_limit_pct": 80, "five_hour_limit_pct": 90}},
+  "nodes": [
+    {
+      "id": "write",
+      "kind": "agent",
+      "role": "worker",
+      "goal": "Create the file src/hello.txt containing exactly one line: hello from autoshift",
+      "tiers": [{"provider": "claude", "model": "haiku"}],
+      "sandbox": ["@package/adapters/sandbox.sh", "--provider", "claude", "--rw", "src", "--net", "1"],
+      "max_attempts": 1,
+      "timeout": 600
+    },
+    {
+      "id": "check",
+      "kind": "gate",
+      "cmd": ["false"],
+      "artifacts": [".autoshift-gate-output/hello.ok"],
+      "trusted_gate": {"root": "@package", "entry": "examples/hello/check.sh", "code_paths": ["src"]}
+    }
+  ],
+  "edges": [{"from": "write", "to": "check", "on": ["PASS"]}]
+}

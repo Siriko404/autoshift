@@ -1,0 +1,47 @@
+[1;36mAUTOSHIFT / G2 finite Ralph loop (unrolled pas[0m
+[1;36mACTIVE[0m
+
+              [90m┌───────────────┐[0m
+              [90m│[0m [37mpass1[0m         [90m│[0m
+              [90m│[0m [37magent[0m         [90m│[0m
+              [90m│[0m [37mclaude/haiku[0m  [90m│[0m
+              [90m│[0m [37m/ low[0m         [90m│[0m
+              [90m│[0m [37m○ READY[0m       [90m│[0m
+              [90m└───────┴───────┘[0m
+                      [90m│[0m
+                      [90m│[0m
+                      [90m│[0m
+                      [90m│[0m
+                      [90m▼[0m
+              [90m┌───────┬───────┐[0m
+              [90m│[0m [90mgate1[0m         [90m│[0m
+              [90m│[0m [90mgate / code[0m   [90m│[0m
+              [90m│[0m [90m· tentative[0m   [90m│[0m
+              [90m└───────┴───────┘[0m
+                      [90m│[0m
+                      [90m│[0m
+                      [90m│[0m
+                      [90m│[0m
+                      [90m▼[0m [90mF[0m
+              [90m┌───────┬───────┐[0m
+              [90m│[0m [90mpass2[0m         [90m│[0m
+              [90m│[0m [90magent[0m         [90m│[0m
+              [90m│[0m [90mclaude/haiku[0m  [90m│[0m
+              [90m│[0m [90m/ low[0m         [90m│[0m
+              [90m│[0m [90m· tentative[0m   [90m│[0m
+              [90m└───────┴───────┘[0m
+                      [90m│[0m
+                      [90m│[0m
+                      [90m│[0m
+                      [90m│[0m
+                      [90m▼[0m
+              [90m┌───────┬───────┐[0m
+              [90m│[0m [90mgate2[0m         [90m│[0m
+              [90m│[0m [90mgate / code[0m   [90m│[0m
+              [90m│[0m [90m· tentative[0m   [90m│[0m
+              [90m└───────────────┘[0m
+
+
+[90m● RUNNING  ✓ PASS  ✕ FAIL  ? BLOCKED  ↻ RETRY[0m
+[90m○ READY  · WAIT  ▼ DIRECTION  F FAIL-edge  B[0m
+[90mBLOCKED-edge  S SKIP-edge  * mixed-edge[0m

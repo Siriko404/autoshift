@@ -1,0 +1,32 @@
+[
+  {
+    "name": "verbose-task",
+    "level": "ultra",
+    "text": "Please just carefully review the code and the failing gate. The next action is simply to fix the failing gate; do not modify any other file."
+  },
+  {
+    "name": "protected-code",
+    "level": "ultra",
+    "text": "Keep `API_KEY` only in `/tmp/one`. Run `python3 -m pytest` and preserve ERROR: not found. Version 3.14.7.\n```python\nprint('the code never changes')\n```"
+  },
+  {
+    "name": "already-short",
+    "level": "ultra",
+    "text": "Run gate. Never skip rc."
+  },
+  {
+    "name": "owner-warning",
+    "level": "lite",
+    "text": "Warning: This will permanently delete files, and the action cannot be undone. Never proceed without explicit approval."
+  },
+  {
+    "name": "error-log",
+    "level": "ultra",
+    "text": "Error: file not found at `/root/a.txt`; exit 127. Keep bytes unchanged."
+  },
+  {
+    "name": "repeated-long-prose",
+    "level": "ultra",
+    "text": "Please just really carefully review the code and then simply verify the results. Please just really carefully review the code and then simply verify the results. Please just really carefully review the code and then simply verify the results. Please just really carefully review the code and then simply verify the results. Please just really carefully review the code and then simply verify the results. Please just really carefully review the code and then simply verify the results. Please just really carefully review the code and then simply verify the results. Please just really carefully review the code and then simply verify the results. Please just really carefully review the code and then simply verify the results. Please just really carefully review the code and then simply verify the results. Please just really carefully review the code and then simply verify the results. Please just really carefully review the code and then simply verify the results. Please just really carefully review the code and then simply verify the results. Please just really carefully review the code and then simply verify the results. Please just really carefully review the code and then simply verify the results. Please just really carefully review the code and then simply verify the results. Please just really carefully review the code and then simply verify the results. Please just really carefully review the code and then simply verify the results. Never omit the checks."
+  }
+]

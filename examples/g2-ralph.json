@@ -1,0 +1,121 @@
+{
+  "name": "G2 finite Ralph loop (unrolled passes)",
+  "wip": 1,
+  "nodes": [
+    {
+      "id": "pass1",
+      "kind": "agent",
+      "role": "worker",
+      "lane": "loop",
+      "goal": "Implement bounded change; continue file-backed work",
+      "tiers": [
+        {
+          "provider": "claude",
+          "model": "haiku"
+        }
+      ],
+      "sandbox": [
+        "@package/adapters/sandbox.sh",
+        "--ro",
+        ".",
+        "--net",
+        "1"
+      ],
+      "max_attempts": 1,
+      "determinism": "judgment",
+      "reasoning": "low",
+      "work_pattern": "lean-build"
+    },
+    {
+      "id": "gate1",
+      "kind": "gate",
+      "lane": "gate",
+      "cmd": [
+        "python3",
+        "-c",
+        "from pathlib import Path;assert Path('done.txt').exists();Path('gate1.ok').write_text('ok')"
+      ],
+      "artifacts": [
+        ".autoshift-gate-output/gate1.ok"
+      ],
+      "determinism": "deterministic",
+      "reasoning": "low",
+      "trusted_gate": {
+        "root": "@package",
+        "entry": "examples/locked-gates/ralph-gate1.sh",
+        "code_paths": [
+          "done.txt"
+        ]
+      }
+    },
+    {
+      "id": "pass2",
+      "kind": "agent",
+      "role": "worker",
+      "lane": "loop",
+      "goal": "Review failure evidence, continue bounded work",
+      "tiers": [
+        {
+          "provider": "claude",
+          "model": "haiku"
+        }
+      ],
+      "sandbox": [
+        "@package/adapters/sandbox.sh",
+        "--ro",
+        ".",
+        "--net",
+        "1"
+      ],
+      "max_attempts": 1,
+      "determinism": "judgment",
+      "reasoning": "low",
+      "work_pattern": "lean-build"
+    },
+    {
+      "id": "gate2",
+      "kind": "gate",
+      "lane": "gate",
+      "cmd": [
+        "python3",
+        "-c",
+        "from pathlib import Path;assert Path('done.txt').exists();Path('gate2.ok').write_text('ok')"
+      ],
+      "artifacts": [
+        ".autoshift-gate-output/gate2.ok"
+      ],
+      "determinism": "deterministic",
+      "reasoning": "low",
+      "trusted_gate": {
+        "root": "@package",
+        "entry": "examples/locked-gates/ralph-gate2.sh",
+        "code_paths": [
+          "done.txt"
+        ]
+      }
+    }
+  ],
+  "edges": [
+    {
+      "from": "pass1",
+      "to": "gate1",
+      "on": [
+        "PASS"
+      ]
+    },
+    {
+      "from": "gate1",
+      "to": "pass2",
+      "on": [
+        "FAIL"
+      ]
+    },
+    {
+      "from": "pass2",
+      "to": "gate2",
+      "on": [
+        "PASS"
+      ]
+    }
+  ]
+}

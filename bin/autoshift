@@ -1,0 +1,6 @@
+#!/usr/bin/env bash
+set -euo pipefail
+HERE=$(cd "$(dirname "$(readlink -f "$0")")/.." && pwd)
+[ "${1:-}" = --home ] && { echo "$HERE"; exit 0; }
+export PYTHONPATH="$HERE${PYTHONPATH:+:$PYTHONPATH}"
+exec python3 -m autoshift "$@"

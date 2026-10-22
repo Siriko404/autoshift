@@ -15,6 +15,6 @@ def command(provider, model, handoff, output, overrides=None):
     if provider == 'opencode':
         return ['opencode','run','--model',model,'Read task at '+str(handoff)]
     if provider == 'agy':
-        # Integration via the known gjob.py wrapper, NOT undocumented agy flags.
-        return ['python3',str(__import__('pathlib').Path(__file__).resolve().parents[1]/'adapters/agy_gjob.py'),'--handoff',str(handoff),'--output',str(output),'--model',model]
+        # Antigravity runs through its small adapter, not by guessing flags here.
+        return ['python3',str(__import__('pathlib').Path(__file__).resolve().parents[1]/'adapters/agy.py'),'--handoff',str(handoff),'--output',str(output),'--model',model]
     raise ValueError('unknown provider '+provider)

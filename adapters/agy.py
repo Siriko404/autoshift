@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
-"""Adapter for known gjob-style agy CLI invocation. 
-Usage: agy_gjob.py --handoff FILE --output FILE --model MODEL
-The caller MUST use sandbox.sh / project-specific sandbox, with credential home scoped.
+"""Adapter that runs one Antigravity (agy) task in print mode.
+Usage: agy.py --handoff FILE --output FILE --model MODEL
+The caller MUST run this inside adapters/sandbox.sh (the permission bypass below is safe only there).
 """
 import argparse
 import json

@@ -9,11 +9,16 @@ program (found with `mise where` or on `PATH`, never a wrapper script that rewri
 | `claude` | `claude --print --permission-mode bypassPermissions --model M --output-format json "Read handoff at H; execute task."` | `adapters/sandbox.sh --login claude` |
 | `codex` | `codex exec --model M --sandbox workspace-write --skip-git-repo-check --output-last-message O "Read handoff at H; execute task."` | `adapters/sandbox.sh --login codex` |
 | `opencode` | `opencode run --model M "Read task at H"` (M is `provider/model`) | `adapters/sandbox.sh --login opencode` |
-| `agy` | `python3 adapters/agy_gjob.py --handoff H --output O --model M` | `adapters/sandbox.sh --login agy` |
+| `agy` | `python3 adapters/agy.py --handoff H --output O --model M` | `adapters/sandbox.sh --login agy` |
 
 Each tool signs in once into its own worker home under `~/.local/state/autoshift/<tool>-worker`, never your own
-login. Tested with claude 2.1.293, codex 0.159.2, opencode 1.19.0, agy 1.4.2 (`--version` inside the sandbox);
-real tasks were run with Claude only.
+login. Each tool has passed one real task (write a file, then a check) inside the sandbox: claude 2.1.293,
+codex 0.159.2, opencode 1.19.0, agy 1.4.4.
+
+**Antigravity sign-in:** `--login agy` hides your desktop session bus, so agy cannot reuse your own keyring login and
+signs in fresh; its token is saved as a file in the worker home. Sign in with the browser flow it shows.
+
+**OpenCode:** the sandbox sets `OPENCODE_PERMISSION` to allow reading the task file, which lives outside the work folder.
 
 **Site additions:** if `~/.config/autoshift/sandbox-extra.sh` exists (or `AUTOSHIFT_SANDBOX_EXTRA` names a file),
 the sandbox sources it for Claude workers, so you can add your own read-only binds or a wrapper command (`PRE`).

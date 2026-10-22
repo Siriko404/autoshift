@@ -7,7 +7,7 @@ base=Path(__file__).resolve().parents[1]
 for p in ('claude','codex','opencode','agy'):
     argv=command(p,'test-model','/a/handoff','/a/output')
     assert argv and (argv[0]==p or p=='agy' and argv[0]=='python3')
-    if p=='agy':assert str(base/'adapters/agy_gjob.py') in argv
+    if p=='agy':assert str(base/'adapters/agy.py') in argv
     if p=='claude':assert argv[argv.index('--permission-mode')+1]=='bypassPermissions'
     # codex-cli 0.159 rejects --full-auto; the launch line must use flags the installed CLI accepts.
     if p=='codex':assert '--full-auto' not in argv and argv[argv.index('--sandbox')+1]=='workspace-write'
@@ -32,6 +32,6 @@ with tempfile.TemporaryDirectory() as d:
         assert str(bindir/provider) in result and str(bindir) not in result and '--ro-bind' in result and '/usr' in result
         if provider=='claude':assert 'CLAUDE_CONFIG_DIR' in result
         if provider=='codex':assert 'CODEX_HOME' in result
-        if provider=='opencode':assert 'XDG_CONFIG_HOME' in result
+        if provider=='opencode':assert 'XDG_CONFIG_HOME' in result and 'OPENCODE_PERMISSION' in result and '{"external_directory":"allow"}' in result
         if provider=='agy':assert 'AGY_HOME' in result
 print('V8_SANDBOX_ARGV_OK fake_~local_bin_all_four_providers')

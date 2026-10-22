@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.1.1 (2026-10-21)
+- OpenCode agents can read their task file (the sandbox sets `OPENCODE_PERMISSION`); before, the agent was refused and did nothing.
+- `--login agy` hides the desktop session bus, so Antigravity signs in fresh and keeps its token in the worker home.
+- The Antigravity adapter is now `adapters/agy.py`.
+- Each of the four tools has passed one real task (write a file, then a check).
+
 ## 0.1.0 (2026-10-21)
 First public release.
 - Kernel: steps file in, run. Step kinds agent, gate, code, ask, fanout, join, wake; lanes run in parallel;

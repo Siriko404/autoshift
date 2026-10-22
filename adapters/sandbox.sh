@@ -46,7 +46,9 @@ if [ "${1:-}" = --login ]; then
     agy)    D=${AUTOSHIFT_AGY_HOME:-$H/.local/state/autoshift/agy-worker}; mkdir -p "$D"; chmod 700 "$D"
             read -r r b <<<"$(real_cli agy)"
             # agy keeps its sign-in in ~/.gemini: show it the worker home there, never the owner's own.
-            exec bwrap --dev-bind / / --bind "$D" "$H/.gemini" "$b/agy";;
+            # no session bus: agy must not find the owner's keyring token, so it signs in fresh and saves its own in $D
+            exec bwrap --dev-bind / / --bind "$D" "$H/.gemini" --tmpfs "/run/user/$(id -u)" \
+                 env -u DBUS_SESSION_BUS_ADDRESS "$b/agy";;
     *) echo "sandbox: --login claude|codex|opencode|agy" >&2; exit 2;;
   esac
 fi
@@ -103,7 +105,8 @@ if [ -n "$PROVIDER" ]; then
     mkdir -p "$CRED"/{data,config,state,cache}
     args+=(--bind "$CRED" "$CRED")
     PASS+=(--setenv XDG_DATA_HOME "$CRED/data" --setenv XDG_CONFIG_HOME "$CRED/config"
-           --setenv XDG_STATE_HOME "$CRED/state" --setenv XDG_CACHE_HOME "$CRED/cache")
+           --setenv XDG_STATE_HOME "$CRED/state" --setenv XDG_CACHE_HOME "$CRED/cache"
+           --setenv OPENCODE_PERMISSION '{"external_directory":"allow"}')   # the handoff file lives outside the work folder; this sandbox is the boundary
   elif [ "$PROVIDER" = agy ]; then
     CRED=${AUTOSHIFT_AGY_HOME:-$H/.local/state/autoshift/agy-worker}
     if [ "$PROBE" = 1 ]; then mkdir -p "$CRED"; fi

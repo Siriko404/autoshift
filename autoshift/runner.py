@@ -66,8 +66,11 @@ def _sandbox_for(n, root, work, state):
     if custom and n['kind']=='gate':
         raise ValueError('gate sandbox is kernel-owned; remove custom sandbox')
     if custom:
-        if any('sandbox.sh' in str(x) for x in custom) and 'stub-sandbox' not in str(custom):
-            return [str(Path(__file__).resolve().parents[1]/'adapters/sandbox.sh') if x=='@package/adapters/sandbox.sh' else x for x in custom]
+        # Only the package's own sandbox may be the program that runs. Arguments after it are its options.
+        # (Matching the text 'sandbox.sh' anywhere in the list let any command run outside the sandbox.)
+        package_sandbox=str(Path(__file__).resolve().parents[1]/'adapters/sandbox.sh')
+        if isinstance(custom,list) and custom and custom[0] in ('@package/adapters/sandbox.sh',package_sandbox):
+            return [package_sandbox if x=='@package/adapters/sandbox.sh' else x for x in custom]
         raise ValueError('unknown sandbox executable')
     if os.environ.get('AUTOSHIFT_TEST_SANDBOX')=='1':
         return [str(Path(__file__).resolve().parents[1]/'tests/stub-sandbox.sh')]

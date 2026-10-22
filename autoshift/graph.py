@@ -107,7 +107,9 @@ def validate(g):
                     raise ValueError('agent tier requires owner-configured provider and model')
         if not NAME.fullmatch(n.get('lane', 'default')):
             raise ValueError('invalid lane')
-        if n.get('kind') in ('code', 'gate') and (not isinstance(n.get('cmd'), list) or not n['cmd'] or not all(isinstance(c, str) for c in n['cmd'])):
+        if 'host' in n and (n['kind']!='code' or n.get('sandbox') or not isinstance(n['host'],dict)):
+            raise ValueError('host is only for a code step without a sandbox, and must be an object')
+        if n.get('kind') in ('code', 'gate') and not (n.get('kind')=='code' and n.get('host')) and (not isinstance(n.get('cmd'), list) or not n['cmd'] or not all(isinstance(c, str) for c in n['cmd'])):
             raise ValueError('code/gate command requires argv list')
         if n['kind'] == 'agent' and not n.get('tiers'):
             raise ValueError('agent needs tiers')
@@ -125,8 +127,8 @@ def validate(g):
             if n['kind']=='gate' and not (isinstance(n.get('trusted_gate'),dict) and n['trusted_gate'].get('entry')):
                 raise ValueError('untrusted gate: trusted_gate.entry required when agents are present')
     for n in g['nodes']:
-        if n['kind']=='gate' and n.get('trusted_gate'):
-            t=n['trusted_gate']
+        if (n['kind']=='gate' and n.get('trusted_gate')) or (n['kind']=='code' and n.get('host')):
+            t=n['trusted_gate'] if n['kind']=='gate' else n['host']
             if not isinstance(t,dict) or not isinstance(t.get('entry'),str) or not t['entry'] or '..' in Path(t['entry']).parts:
                 raise ValueError('bad trusted gate entry')
             if not isinstance(t.get('code_paths',[]),list):raise ValueError('gate code_paths must be an explicit list')

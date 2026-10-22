@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.2.0 (2026-10-21)
+- `host` steps: a `code` step can run your own pinned script outside the sandbox, for tools that bring their own sandbox.
+  The script's folder is hash-pinned and must lie outside the repository; see docs/GRAPH.md.
+
 ## 0.1.1 (2026-10-21)
 - OpenCode agents can read their task file (the sandbox sets `OPENCODE_PERMISSION`); before, the agent was refused and did nothing.
 - `--login agy` hides the desktop session bus, so Antigravity signs in fresh and keeps its token in the worker home.

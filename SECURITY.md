@@ -8,6 +8,8 @@ AutoShift runs coding agents unattended, so its design assumes an agent may try 
   PASS comes only from the check's exit code and fresh artifacts, never from what an agent says.
 - The journal lives outside the repository and outside every writable folder. Each run works in its own git copy;
   your branch changes only when every check passed and you set `merge_on_pass`.
+- One opt-in exception: a `host` step (docs/GRAPH.md) runs a script you pinned outside the sandbox, with your full permissions. It
+  runs only from a folder outside the repository, only while its hash matches the journalled pin, and only if you wrote it into the steps file.
 - Worker sign-ins are separate homes under `~/.local/state/autoshift/`, never your own logins.
 
 Limits:

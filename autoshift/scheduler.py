@@ -18,9 +18,14 @@ from .doctrine import redact,owner_message
 TERMINAL={'PASS','FAIL','BLOCKED','SKIP'}
 
 
+def pinned_spec(n):
+    """The pinned script of a locked gate (`trusted_gate`) or of a host step (`host`), else None."""
+    return n.get('trusted_gate') if n['kind']=='gate' else n.get('host') if n['kind']=='code' else None
+
+
 def gate_pins(graph):
     package=Path(__file__).resolve().parents[1]
-    return {n['id']:pin_digest(n['trusted_gate'],package) for n in graph['nodes'] if n['kind']=='gate' and n.get('trusted_gate')}
+    return {n['id']:pin_digest(pinned_spec(n),package) for n in graph['nodes'] if pinned_spec(n)}
 
 
 class Engine:
@@ -39,8 +44,8 @@ class Engine:
                     if n['kind']=='agent' and (self.repo/'.git').exists() and (self.repo/'.git').resolve().is_relative_to(bind):
                         raise ValueError('unsafe agent: writable bind includes .git')
         # No writable agent bind may cover a source of locked gate scripts.
-        for gate in (x for x in graph['nodes'] if x['kind']=='gate' and x.get('trusted_gate')):
-            spec=gate['trusted_gate']
+        for gate in (x for x in graph['nodes'] if pinned_spec(x)):
+            spec=pinned_spec(gate)
             trusted=(Path(__file__).resolve().parents[1] if spec['root']=='@package' else Path(spec['root']).resolve())
             if trusted.is_relative_to(self.repo):
                 raise ValueError('unsafe gate: trusted source under writable worktree')

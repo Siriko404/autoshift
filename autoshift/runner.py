@@ -148,9 +148,10 @@ def execute(n, attempt, tier, root, state, previous=None, overrides=None, pin=No
         model=tier.get('model') if isinstance(tier,dict) else str(tier)
         cmd=command(provider, model, handoff, outfile, overrides)
     else:
-        cmd=list(n['cmd'])
-        if n['kind']=='gate' and n.get('trusted_gate'):
-            spec=n['trusted_gate']
+        cmd=list(n.get('cmd',[]))
+        spec_key={'gate':'trusted_gate','code':'host'}.get(n['kind'])
+        if spec_key and n.get(spec_key):
+            spec=n[spec_key]
             package=Path(__file__).resolve().parents[1]
             source=package if spec['root']=='@package' else Path(spec['root']).resolve()
             entry=(source/spec['entry']).resolve()
@@ -162,8 +163,9 @@ def execute(n, attempt, tier, root, state, previous=None, overrides=None, pin=No
                 return {'status':'BLOCKED','rc':None,'signature':'trusted-gate-changed','missing':[], 'artifacts':[], 'claims':[]}
             # The command vector cannot be overridden by worktree contents.
             cmd=['bash',str(entry),*spec.get('args',[])]
+    host=n['kind']=='code' and bool(n.get('host'))   # owner-pinned script, runs outside the sandbox on purpose
     try:
-        sandbox=_sandbox_for(n,root,work,state)
+        sandbox=[] if host else _sandbox_for(n,root,work,state)
         if n['kind']=='agent' and 'stub-sandbox.sh' not in str(sandbox):
             # Gate state and .git must not be reachable through an agent's writable bind.
             for ix,x in enumerate(sandbox):
@@ -177,7 +179,7 @@ def execute(n, attempt, tier, root, state, previous=None, overrides=None, pin=No
             extra=['--chdir',str(work),'--ro',str(handoff),'--env','AUTOSHIFT_HANDOFF']
             if vdir:extra+=['--rw',str(vdir),'--env','AUTOSHIFT_VERDICT']
             sandbox=list(sandbox[:ix+1])+extra+list(sandbox[ix+1:])
-        cmd=list(sandbox)+['--']+cmd
+        if sandbox:cmd=list(sandbox)+['--']+cmd
     except ValueError as e:
         return {'status':'BLOCKED','rc':None,'artifacts':[],'missing':[],'claims':[],
                 'signature':'sandbox-required: '+str(e),'handoff':str(handoff)}
